@@ -2,7 +2,72 @@ var workingSheet = "CharacterSettings";
 var dataSheetName = "DataItems";
 var ActiveColumns = [5, 12, 17, 22, 33];
 var ActiveRows = Array.from({ length: 17 }, (_, index) => index + 7);
-
+var enchantHeadOptionsDropDown = [
+  "Arcanum of Burning Mysteries",
+  "Arcanum of Blissful Mending",
+];
+var enchantShoulderOptionsDropDown = [
+  "Master's Inscription of the Storm",
+  "Master's Inscription of the Crag",
+  "Greater Inscription of the Storm",
+  "Greater Inscription of the Crag",
+];
+var enchantBackOptionsDropDown = [
+  "Springy Arachnoweave",
+  "Lightweave Embroidery ",
+  "Darkglow Embroidery ",
+  "Greater Speed",
+];
+var enchantChestOptionsDropDown = [
+  "Powerful Stats",
+  "Greater Mana Restoration",
+  "Exceptional Mana",
+];
+var enchantHandsOptionsDropDown = [
+  "Hyperspeed Accelerators",
+  "Exceptional Spellpower",
+  "Minor Haste",
+];
+var enchantWristOptionsDropDown = [
+  "Fur Lining - Spell Power",
+  "Superior Spellpower",
+  "Exceptional Intellect",
+];
+var enchantsLegsOptionsDropDown = [
+  "Brilliant Spellthread",
+  "Sapphire Spellthread",
+];
+var enchantsFeetOptionsDropDown = [
+  "Nitro Boosts",
+  "Icewalker",
+  "Greater Vitality",
+  "Tuskarr's Vitality",
+];
+var enchantFingerOptionsDropDown = ["Greater Spellpower"];
+var enchantMainHandOptionsDropDown = ["Mighty Spellpower", "Major Intellect"];
+var enchantOffHandOptionsDropDown = ["Greater Intellect"];
+var enchantOptions = {
+  7: enchantHeadOptionsDropDown,
+  8: enchantChestOptionsDropDown,
+  9: enchantsLegsOptionsDropDown,
+  10: enchantShoulderOptionsDropDown,
+  11: enchantHandsOptionsDropDown,
+  12: enchantWristOptionsDropDown,
+  14: enchantsFeetOptionsDropDown,
+  15: enchantBackOptionsDropDown,
+  17: enchantFingerOptionsDropDown,
+  18: enchantFingerOptionsDropDown,
+  21: enchantMainHandOptionsDropDown,
+  22: enchantOffHandOptionsDropDown,
+};
+var excludeGemNames = [
+  "Prismatic",
+  "Yellow",
+  "Red",
+  "Orange",
+  "Purple",
+  "Green",
+];
 var colors = {
   0: "L",
   1: "Q",
@@ -14,7 +79,6 @@ var backgroundColors = {
   Red: "Red",
   Yellow: "Yellow",
 };
-
 var backgroundColorsBonus = {
   "#bdbdbd": ["#bdbdbd"],
   "#0096ff": [
@@ -160,7 +224,6 @@ var correctGemColors = {
     "Energized Dark Jade",
   ],
 };
-
 var dropdownOptions = [
   "Prismatic",
   "Nightmare Tear",
@@ -207,6 +270,7 @@ var dropdownOptions = [
   "Energized Dark Jade",
 ];
 var dropDownOptionsMeta = [
+  "Meta",
   "Insightful Earthsiege Diamond",
   "Ember Skyflare Diamond",
   "Beaming Earthsiege Diamond",
@@ -231,13 +295,12 @@ function applyColorBaseOnItemSockets(e) {
 
   if (
     !(column === 33 && [11, 12, 13].includes(row)) &&
-    currentCellValue.includes("Phase")
+    containsExactWord(currentCellValue, "Phase")
   ) {
     resetGemCells(row, activeSheet);
     return;
   }
-
-  // activeSheet.getRange("H5").setValue(`${row} ${column}`);
+  activeSheet.getRange("H5").setValue(`${row} ${column}`);
 
   const additionalSocket = bsAndSocketBelt?.[`${row}${column}`];
   const dataSheet =
@@ -246,52 +309,84 @@ function applyColorBaseOnItemSockets(e) {
     `N${rowInDataSheet}:P${rowInDataSheet}`
   );
   const data = targetRange.getValues()[0].filter((gem) => gem !== "");
-  // activeSheet.getRange("I5").setValue(additionalSocket);
+  activeSheet.getRange("I5").setValue(additionalSocket);
 
-  if (![12, 17, 22].includes(column)) resetGemCells(row, activeSheet);
+  if (![12, 17, 22, 33].includes(column)) resetGemCells(row, activeSheet);
 
-  if (
-    additionalSocket &&
-    activeSheet.getRange(additionalSocket).getValue() === true
-  ) {
+  if (column === 33 && additionalSocket && !activeSheet.getRange(additionalSocket).getValue()) {
+    resetOnlyExtraGemSlot(activeSheet, row, data.length);
+  }
+
+  if (additionalSocket && activeSheet.getRange(additionalSocket).getValue()) {
     data.push("Meta");
   }
 
-  const bonusForGems = generateGemsDropDownMenu(activeSheet, row, data);
+  var bonusForGems = generateGemsDropDownMenu(activeSheet, row, data);
   const isBonusSocket = bonusForGems === data.length && bonusForGems > 0;
-  setBonusSocket(activeSheet, row, isBonusSocket);
-  // activeSheet
-  //   .getRange("J5")
-  //   .setValue(`${isBonusSocket} ${bonusForGems} ${data.length}`);
+  setBonusSocket(activeSheet, row, isBonusSocket, data);
+  enchantsDropDown(activeSheet, row);
+  activeSheet
+    .getRange("J5")
+    .setValue(`${isBonusSocket} ${bonusForGems} ${data.length}`);
+}
+
+function containsExactWord(text, word) {
+  const regex = new RegExp(`\\b${word}\\b`, "i");
+  return regex.test(text);
+}
+
+function resetOnlyExtraGemSlot(sheet, row, gems) {
+  const cellToChange = sheet.getRange(
+    `${gems === 0 ? "L" : gems === 1 ? "Q" : gems === 2 ? "V" : ""}${row}`
+  );
+  cellToChange.setValue("").setDataValidation(null);
+  cellToChange.setBackground("");
 }
 
 function resetGemCells(row, sheet) {
   Object.values(colors).forEach((cell) => {
     const cellToChange = sheet.getRange(`${cell}${row}`);
+    sheet.getRange(`Z${row}`).setValue("");
+    sheet.getRange(`AB${row}`).setValue("").setDataValidation(null);
     cellToChange.setDataValidation(null);
-    cellToChange.setBackground(row % 2 === 0 ? "#ffd1dc" : "");
+    cellToChange.setBackground("");
     cellToChange.setValue("");
   });
 }
 
-function setBonusSocket(sheet, row, bonus) {
+function enchantsDropDown(activeSheet, row) {
+  const cellToChange = activeSheet.getRange(`AB${row}`);
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(enchantOptions[row])
+    .build();
+  cellToChange.setDataValidation(rule);
+}
+
+function setBonusSocket(sheet, row, bonus, data) {
   const bonusCellToChange = sheet.getRange(`Z${row}`);
-  bonusCellToChange.setValue(bonus);
-  bonusCellToChange.setFontColor(bonus ? "#00FF00" : "Red");
+  bonusCellToChange.setValue(
+    data.length === 0 || (data.length === 1 && data.includes("Meta"))
+      ? ""
+      : bonus
+      ? "Yes"
+      : "No"
+  );
+  bonusCellToChange.setFontColor(bonus ? "#6aa84f" : "Red");
 }
 
 function generateGemsDropDownMenu(activeSheet, row, data) {
   let bonusTotal = 0;
   data.forEach((color, i) => {
     const cellToChange = activeSheet.getRange(`${colors[i]}${row}`);
+    const cellValue = cellToChange.getValue();
     // Browser.msgBox(color);
     bonusTotal += backgroundColorsBonus[backgroundColors[color]].includes(
-      cellToChange.getValue() || ""
+      cellValue || ""
     )
       ? 1
       : 0;
-    const isMetaColpr = color === "Meta";
-    bonusTotal += isMetaColpr && cellToChange.getValue() ? 1 : 0;
+    const isMetaColpr = color === "Meta" && cellValue !== "Meta";
+    bonusTotal += isMetaColpr ? 1 : 0;
     cellToChange.setBackground(backgroundColors[color]);
     const rule = SpreadsheetApp.newDataValidation()
       .requireValueInList(
