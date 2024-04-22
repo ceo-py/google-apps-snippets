@@ -1,5 +1,8 @@
 var workingSheet = "CharacterSettings";
 var dataSheetName = "DataItems";
+var ActiveColumns = [5, 12, 17, 22, 33];
+var ActiveRows = Array.from({ length: 17 }, (_, index) => index + 7);
+
 var colors = {
   0: "L",
   1: "Q",
@@ -203,29 +206,28 @@ var dropdownOptions = [
   "Dazzling Dark Jade",
   "Energized Dark Jade",
 ];
+var dropDownOptionsMeta = [
+  "Insightful Earthsiege Diamond",
+  "Ember Skyflare Diamond",
+  "Beaming Earthsiege Diamond",
+  "Revitalizing Skyflare Diamond",
+];
 
 function applyColorBaseOnItemSockets(e) {
   const spreadSheet = e.source;
   const activeRange = e.source.getActiveRange();
   const sheetName = spreadSheet.getActiveSheet().getName();
 
-  if (sheetName !== workingSheet) {
-    return;
-  }
+  if (sheetName !== workingSheet) return;
+
   const activeSheet =
     SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
   const row = activeRange.getRow();
   const column = activeRange.getColumn();
+
+  if (!ActiveColumns.includes(column) || !ActiveRows.includes(row)) return;
   const rowInDataSheet = activeSheet.getRange(`A${row}`).getValue();
   const currentCellValue = activeRange.getValue();
-
-  if (
-    ![33, 12, 17, 22].includes(column) &&
-    [11, 12, 13].includes(row) &&
-    (column !== 5 || row > 23 || row < 7)
-  ) {
-    return;
-  }
 
   if (
     !(column === 33 && [11, 12, 13].includes(row)) &&
@@ -235,7 +237,7 @@ function applyColorBaseOnItemSockets(e) {
     return;
   }
 
-  activeSheet.getRange("H5").setValue(`${row} ${column}`);
+  // activeSheet.getRange("H5").setValue(`${row} ${column}`);
 
   const additionalSocket = bsAndSocketBelt?.[`${row}${column}`];
   const dataSheet =
@@ -244,10 +246,9 @@ function applyColorBaseOnItemSockets(e) {
     `N${rowInDataSheet}:P${rowInDataSheet}`
   );
   const data = targetRange.getValues()[0].filter((gem) => gem !== "");
-  activeSheet.getRange("I5").setValue(additionalSocket);
+  // activeSheet.getRange("I5").setValue(additionalSocket);
 
   if (![12, 17, 22].includes(column)) resetGemCells(row, activeSheet);
-  //   resetGemCells(row, activeSheet);
 
   if (
     additionalSocket &&
@@ -259,9 +260,9 @@ function applyColorBaseOnItemSockets(e) {
   const bonusForGems = generateGemsDropDownMenu(activeSheet, row, data);
   const isBonusSocket = bonusForGems === data.length && bonusForGems > 0;
   setBonusSocket(activeSheet, row, isBonusSocket);
-  activeSheet
-    .getRange("J5")
-    .setValue(`${isBonusSocket} ${bonusForGems} ${data.length}`);
+  // activeSheet
+  //   .getRange("J5")
+  //   .setValue(`${isBonusSocket} ${bonusForGems} ${data.length}`);
 }
 
 function resetGemCells(row, sheet) {
@@ -289,10 +290,13 @@ function generateGemsDropDownMenu(activeSheet, row, data) {
     )
       ? 1
       : 0;
-    bonusTotal += color === "Meta" ? 1 : 0;
+    const isMetaColpr = color === "Meta";
+    bonusTotal += isMetaColpr && cellToChange.getValue() ? 1 : 0;
     cellToChange.setBackground(backgroundColors[color]);
     const rule = SpreadsheetApp.newDataValidation()
-      .requireValueInList(dropdownOptions)
+      .requireValueInList(
+        color === "Meta" && row === 7 ? dropDownOptionsMeta : dropdownOptions
+      )
       .build();
     cellToChange.setDataValidation(rule);
   });
