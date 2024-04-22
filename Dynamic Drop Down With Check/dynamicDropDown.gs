@@ -15,6 +15,8 @@ var backgroundColors = {
 var backgroundColorsBonus = {
   "#bdbdbd": ["#bdbdbd"],
   "#0096ff": [
+    "Nightmare Tear",
+    "Enchanted Tear",
     "Dazzling Eye of Zul",
     "Energized Eye of Zul",
     "Dazzling Forest Emerald",
@@ -37,6 +39,8 @@ var backgroundColorsBonus = {
     "Royal Shadow Crystal",
   ],
   Red: [
+    "Nightmare Tear",
+    "Enchanted Tear",
     "Luminous Ametrine",
     "Reckless Ametrine",
     "Luminous Monarch Topaz",
@@ -56,6 +60,8 @@ var backgroundColorsBonus = {
     "Runed Bloodstone",
   ],
   Yellow: [
+    "Nightmare Tear",
+    "Enchanted Tear",
     "Dazzling Eye of Zul",
     "Energized Eye of Zul",
     "Dazzling Forest Emerald",
