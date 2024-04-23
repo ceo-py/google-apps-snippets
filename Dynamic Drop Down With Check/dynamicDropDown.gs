@@ -224,6 +224,10 @@ var correctGemColors = {
     "Energized Dark Jade",
   ],
 };
+var correctNumberGems = {
+  Tear: 1,
+  "Dragon's": 3,
+};
 var dropdownOptions = [
   "Prismatic",
   "Nightmare Tear",
@@ -310,10 +314,15 @@ function applyColorBaseOnItemSockets(e) {
   );
   const data = targetRange.getValues()[0].filter((gem) => gem !== "");
   activeSheet.getRange("I5").setValue(additionalSocket);
+  isGemsCorrectPrismaticAndDragons(activeSheet, currentCellValue, activeRange);
 
   if (![12, 17, 22, 33].includes(column)) resetGemCells(row, activeSheet);
 
-  if (column === 33 && additionalSocket && !activeSheet.getRange(additionalSocket).getValue()) {
+  if (
+    column === 33 &&
+    additionalSocket &&
+    !activeSheet.getRange(additionalSocket).getValue()
+  ) {
     resetOnlyExtraGemSlot(activeSheet, row, data.length);
   }
 
@@ -325,9 +334,31 @@ function applyColorBaseOnItemSockets(e) {
   const isBonusSocket = bonusForGems === data.length && bonusForGems > 0;
   setBonusSocket(activeSheet, row, isBonusSocket, data);
   enchantsDropDown(activeSheet, row);
+
   activeSheet
     .getRange("J5")
     .setValue(`${isBonusSocket} ${bonusForGems} ${data.length}`);
+}
+
+function isGemsCorrectPrismaticAndDragons(sheet, activeCellValue, activeRange) {
+  let gemType = "";
+  for (const gem in correctNumberGems) {
+    if (containsExactWord(activeCellValue, gem)) {
+      gemType = gem;
+      break;
+    }
+  }
+  if (gemType === "") return;
+
+  const range = sheet.getRange("L7:V23");
+  const values = range.getValues().map((x) => JSON.stringify(x).split(","));
+  let found = 0;
+  values.map((x) =>
+    x.map((cellValue) => {
+      if (containsExactWord(cellValue, gemType)) found++;
+    })
+  );
+  if (found > correctNumberGems[gemType]) activeRange.setValue("");
 }
 
 function containsExactWord(text, word) {
