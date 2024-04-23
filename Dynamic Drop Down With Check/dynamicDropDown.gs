@@ -1,6 +1,6 @@
 var workingSheet = "CharacterSettings";
 var dataSheetName = "DataItems";
-var ActiveColumns = [5, 12, 17, 22, 33];
+var ActiveColumns = [5, 12, 17, 22, 35];
 var ActiveRows = Array.from({ length: 17 }, (_, index) => index + 7);
 var enchantHeadOptionsDropDown = [
   "Arcanum of Burning Mysteries",
@@ -158,24 +158,24 @@ var backgroundColorsBonus = {
   ],
 };
 var bsAndSocketBelt = {
-  1133: "AG11",
-  1233: "AG12",
-  1333: "AG13",
-  115: "AG11",
-  125: "AG12",
-  135: "AG13",
+  1135: "AI11",
+  1235: "AI12",
+  1335: "AI13",
+  115: "AI11",
+  125: "AI12",
+  135: "AI13",
 
-  1112: "AG11",
-  1117: "AG11",
-  1122: "AG11",
+  1112: "AI11",
+  1117: "AI11",
+  1122: "AI11",
 
-  1212: "AG12",
-  1217: "AG12",
-  1222: "AG12",
+  1212: "AI12",
+  1217: "AI12",
+  1222: "AI12",
 
-  1312: "AG13",
-  1317: "AG13",
-  1322: "AG13",
+  1312: "AI13",
+  1317: "AI13",
+  1322: "AI13",
 };
 var correctGemColors = {
   Yellow: [
@@ -280,6 +280,12 @@ var dropDownOptionsMeta = [
   "Beaming Earthsiege Diamond",
   "Revitalizing Skyflare Diamond",
 ];
+var metaActivationReq = {
+  "Insightful Earthsiege Diamond": { Red: 1, Yellow: 1, Blue: 1 },
+  "Ember Skyflare Diamond": { Red: 3 },
+  "Beaming Earthsiege Diamond": { Red: 2, Yellow: 1 },
+  "Revitalizing Skyflare Diamond": { Red: 2 },
+};
 
 function applyColorBaseOnItemSockets(e) {
   const spreadSheet = e.source;
@@ -298,7 +304,7 @@ function applyColorBaseOnItemSockets(e) {
   const currentCellValue = activeRange.getValue();
 
   if (
-    !(column === 33 && [11, 12, 13].includes(row)) &&
+    !(column === 35 && [11, 12, 13].includes(row)) &&
     containsExactWord(currentCellValue, "Phase")
   ) {
     resetGemCells(row, activeSheet);
@@ -315,14 +321,14 @@ function applyColorBaseOnItemSockets(e) {
   const data = targetRange.getValues()[0].filter((gem) => gem !== "");
   activeSheet.getRange("I5").setValue(additionalSocket);
 
-  if ([7, 17, 22, 33].includes(column)) {
+  if ([12, 17, 22, 35].includes(column)) {
     isGemsCorrectPrismaticAndDragons(
       activeSheet,
       currentCellValue,
       activeRange
     );
   }
-
+  // Rings/Trinckets Change only
   if (
     column === 5 &&
     [17, 18, 19, 20].includes(row) &&
@@ -330,28 +336,117 @@ function applyColorBaseOnItemSockets(e) {
   )
     return;
 
-  if (![12, 17, 22, 33].includes(column)) resetGemCells(row, activeSheet);
-
+  if (![12, 17, 22, 35].includes(column)) resetGemCells(row, activeSheet);
+  // Extra Socket Change only
   if (
-    column === 33 &&
+    column === 35 &&
     additionalSocket &&
     !activeSheet.getRange(additionalSocket).getValue()
   ) {
     resetOnlyExtraGemSlot(activeSheet, row, data.length);
   }
 
-  if (additionalSocket && activeSheet.getRange(additionalSocket).getValue()) {
+  if (
+    additionalSocket &&
+    activeSheet.getRange(additionalSocket).getValue() &&
+    !containsExactWord(activeSheet.getRange(`E${row}`).getValue(), "Phase")
+  ) {
     data.push("Meta");
   }
 
   var bonusForGems = generateGemsDropDownMenu(activeSheet, row, data);
   const isBonusSocket = bonusForGems === data.length && bonusForGems > 0;
-  setBonusSocket(activeSheet, row, isBonusSocket, data);
-  enchantsDropDown(activeSheet, row);
+
+  if ([5, 12, 17, 22].includes(column)) {
+    setBonusSocket(activeSheet, row, isBonusSocket, data);
+  }
+
+  if ([5].includes(column)) {
+    enchantsDropDown(activeSheet, row);
+  }
+
+  isMetaActive(activeSheet, currentCellValue);
 
   activeSheet
     .getRange("J5")
     .setValue(`${isBonusSocket} ${bonusForGems} ${data.length}`);
+}
+function getTotalGems(data) {
+  const subColors = {
+    // Orange: { Red: 0, Yellow: 0 },
+    // Purple: { Red: 0, Blue: 0 },
+    // Green: { Yellow: 0, Blue: 0 },
+  };
+  const foundGems = {};
+  for (const cValue of data) {
+    if (cValue === "") continue;
+
+    if (cValue === "Nightmare Tear" || cValue === "Enchanted Tear") {
+      foundGems["Tear"] = 1;
+      continue;
+    }
+
+    Object.keys(correctGemColors).forEach((c) => {
+      if (correctGemColors[c].includes(cValue)) {
+        if (!foundGems.hasOwnProperty(c)) foundGems[c] = 0;
+        foundGems[c]++;
+        // } else {
+        //   for (const k in foundGems[c]) {
+        //     foundGems[c][k]++;
+        //   }
+      }
+    });
+  }
+
+  return foundGems;
+}
+
+function isMetaActive(sheet, metaType) {
+  if (!metaActivationReq.hasOwnProperty(metaType)) return;
+
+  const range = sheet.getRange("L7:V23");
+  const values = range
+    .getValues()
+    .map((x) => JSON.stringify(x))
+    .map((x) => JSON.parse(x))
+    .filter((x) => x.length !== 0)
+    .flat();
+
+  const foundGems = getTotalGems(values);
+
+  if (foundGems.hasOwnProperty("Tear")) {
+    for (const color in metaActivationReq[metaType]) {
+      metaActivationReq[metaType][color]--;
+      if (metaActivationReq[metaType][color] <= 0)
+        delete metaActivationReq[metaType][color];
+    }
+    delete foundGems["Tear"];
+  }
+
+  for (const color in metaActivationReq[metaType]) {
+    if (foundGems.hasOwnProperty(color)) {
+      metaActivationReq[metaType][color] -= foundGems[color];
+      if (metaActivationReq[metaType][color] <= 0)
+        delete metaActivationReq[metaType][color];
+      delete foundGems[color];
+    }
+  }
+  sheet
+    .getRange("J2")
+    .setValue(`${JSON.stringify(metaActivationReq[metaType])}`);
+
+  sheet.getRange("J3").setValue(`${JSON.stringify(foundGems)}`);
+
+  const leftGems = Object.values(metaActivationReq[metaType]).reduce(
+    (a, b) => a + b,
+    0
+  );
+  sheet
+    .getRange("H1")
+    .setValue(leftGems === 0 ? "Meta Active" : "Meta Inactive");
+
+  // Browser.msgBox(leftGems > 0 ? leftGems : "All gems found");
+  sheet.getRange("J1").setValue(leftGems);
 }
 
 function isItemUnique(sheet, activeRange, row) {
@@ -446,7 +541,12 @@ function generateGemsDropDownMenu(activeSheet, row, data) {
     )
       ? 1
       : 0;
-    const isMetaColpr = color === "Meta" && cellValue !== "Meta";
+    const isMetaColpr =
+      (color === "Meta" && row !== 7 && cellValue !== "Meta") ||
+      (row === 7 &&
+        color === "Meta" &&
+        cellValue !== "Meta" &&
+        cellValue !== "");
     bonusTotal += isMetaColpr ? 1 : 0;
     cellToChange.setBackground(backgroundColors[color]);
     const rule = SpreadsheetApp.newDataValidation()
