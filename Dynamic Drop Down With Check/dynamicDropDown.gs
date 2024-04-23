@@ -314,7 +314,21 @@ function applyColorBaseOnItemSockets(e) {
   );
   const data = targetRange.getValues()[0].filter((gem) => gem !== "");
   activeSheet.getRange("I5").setValue(additionalSocket);
-  isGemsCorrectPrismaticAndDragons(activeSheet, currentCellValue, activeRange);
+
+  if ([7, 17, 22, 33].includes(column)) {
+    isGemsCorrectPrismaticAndDragons(
+      activeSheet,
+      currentCellValue,
+      activeRange
+    );
+  }
+
+  if (
+    column === 5 &&
+    [17, 18, 19, 20].includes(row) &&
+    !isItemUnique(activeSheet, activeRange, row)
+  )
+    return;
 
   if (![12, 17, 22, 33].includes(column)) resetGemCells(row, activeSheet);
 
@@ -340,6 +354,21 @@ function applyColorBaseOnItemSockets(e) {
     .setValue(`${isBonusSocket} ${bonusForGems} ${data.length}`);
 }
 
+function isItemUnique(sheet, activeRange, row) {
+  const range = sheet.getRange("E17:J20");
+  const values = range
+    .getValues()
+    .map((x) => JSON.stringify(x).split(","))
+    .map((x, i) => (containsExactWord(x[0], "Phase") ? i : x[0].split(" (")[0]))
+    .flat();
+  if (values.length !== new Set(values).size) {
+    resetGemCells(row, sheet);
+    activeRange.setValue("");
+    return false;
+  }
+  return true;
+}
+
 function isGemsCorrectPrismaticAndDragons(sheet, activeCellValue, activeRange) {
   let gemType = "";
   for (const gem in correctNumberGems) {
@@ -351,13 +380,14 @@ function isGemsCorrectPrismaticAndDragons(sheet, activeCellValue, activeRange) {
   if (gemType === "") return;
 
   const range = sheet.getRange("L7:V23");
-  const values = range.getValues().map((x) => JSON.stringify(x).split(","));
+  const values = range
+    .getValues()
+    .map((x) => JSON.stringify(x).split(","))
+    .flat();
   let found = 0;
-  values.map((x) =>
-    x.map((cellValue) => {
-      if (containsExactWord(cellValue, gemType)) found++;
-    })
-  );
+  values.map((cellValue) => {
+    if (containsExactWord(cellValue, gemType)) found++;
+  });
   if (found > correctNumberGems[gemType]) activeRange.setValue("");
 }
 
