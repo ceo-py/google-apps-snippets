@@ -365,7 +365,7 @@ function applyColorBaseOnItemSockets(e) {
     enchantsDropDown(activeSheet, row);
   }
 
-  isMetaActive(activeSheet, currentCellValue);
+  isMetaActive(activeSheet, activeSheet.getRange("L7").getValue(), activeSheet);
 
   activeSheet
     .getRange("J5")
@@ -373,9 +373,9 @@ function applyColorBaseOnItemSockets(e) {
 }
 function getTotalGems(data) {
   const subColors = {
-    // Orange: { Red: 0, Yellow: 0 },
-    // Purple: { Red: 0, Blue: 0 },
-    // Green: { Yellow: 0, Blue: 0 },
+    Orange: { Red: 0, Yellow: 0 },
+    Purple: { Red: 0, Blue: 0 },
+    Green: { Yellow: 0, Blue: 0 },
   };
   const foundGems = {};
   for (const cValue of data) {
@@ -387,21 +387,54 @@ function getTotalGems(data) {
     }
 
     Object.keys(correctGemColors).forEach((c) => {
-      if (correctGemColors[c].includes(cValue)) {
+      const gemCorrect = correctGemColors[c].includes(cValue);
+      if (subColors.hasOwnProperty(c) && gemCorrect) {
+        for (const key in subColors[c]) {
+          subColors[c][key] += 1;
+        }
+      } else if (gemCorrect) {
         if (!foundGems.hasOwnProperty(c)) foundGems[c] = 0;
         foundGems[c]++;
-        // } else {
-        //   for (const k in foundGems[c]) {
-        //     foundGems[c][k]++;
-        //   }
       }
     });
   }
+  return { foundGems, subColors };
+}
 
+function tearGemAdd(metaType, foundGems) {
+  if (foundGems.hasOwnProperty("Tear")) {
+    for (const color in metaActivationReq[metaType]) {
+      metaActivationReq[metaType][color]--;
+      if (metaActivationReq[metaType][color] <= 0)
+        delete metaActivationReq[metaType][color];
+    }
+    delete foundGems["Tear"];
+  }
   return foundGems;
 }
 
-function isMetaActive(sheet, metaType) {
+function subColorMetaGemChekc(subColor, metaType) {
+  // Object.values(subColor).forEach((x) => {
+  //   Object.keys(x).forEach((color) => {
+  //     if (metaActivationReq[metaType].hasOwnProperty(color)) {
+  //       const amountToDeduct = metaActivationReq[metaType][color] - x[color];
+  //       Browser.msgBox(amountToDeduct);
+  //       metaActivationReq[metaType][color] -= amountToDeduct;
+  //       if (metaActivationReq[metaType][color] <= 0)
+  //         delete metaActivationReq[metaType][color];
+  //       if (amountToDeduct < 0) {
+  //         Object.keys(x).forEach((color) => {
+  //           x[color] = Math.abs(amountToDeduct);
+  //         });
+  //       }
+  //     }
+  //   });
+  // });
+
+  return Object.values(metaActivationReq[metaType]).reduce((a, b) => a + b, 0);
+}
+
+function isMetaActive(sheet, metaType, sheet) {
   if (!metaActivationReq.hasOwnProperty(metaType)) return;
 
   const range = sheet.getRange("L7:V23");
@@ -412,16 +445,8 @@ function isMetaActive(sheet, metaType) {
     .filter((x) => x.length !== 0)
     .flat();
 
-  const foundGems = getTotalGems(values);
-
-  if (foundGems.hasOwnProperty("Tear")) {
-    for (const color in metaActivationReq[metaType]) {
-      metaActivationReq[metaType][color]--;
-      if (metaActivationReq[metaType][color] <= 0)
-        delete metaActivationReq[metaType][color];
-    }
-    delete foundGems["Tear"];
-  }
+  let { foundGems, subColors } = getTotalGems(values);
+  foundGems = tearGemAdd(metaType, foundGems);
 
   for (const color in metaActivationReq[metaType]) {
     if (foundGems.hasOwnProperty(color)) {
@@ -437,16 +462,22 @@ function isMetaActive(sheet, metaType) {
 
   sheet.getRange("J3").setValue(`${JSON.stringify(foundGems)}`);
 
-  const leftGems = Object.values(metaActivationReq[metaType]).reduce(
+  const missingToActive = Object.values(metaActivationReq[metaType]).reduce(
     (a, b) => a + b,
     0
   );
-  sheet
-    .getRange("H1")
-    .setValue(leftGems === 0 ? "Meta Active" : "Meta Inactive");
+  const metaActive = missingToActive === 0;
+  sheet.getRange("J1").setValue(missingToActive);
+  sheet.getRange("I2").setValue(subColors);
+  sheet.getRange("AI14").setValue(metaActive ? "Yes" : "No");
 
-  // Browser.msgBox(leftGems > 0 ? leftGems : "All gems found");
-  sheet.getRange("J1").setValue(leftGems);
+  if (metaActive) {
+    sheet.getRange("L7").setFontColor("#6aa84f");
+    return;
+  }
+
+  // Browser.msgBox(subColorMetaGemChekc(subColors, metaType));
+  sheet.getRange("L7").setFontColor(metaActive ? "#6aa84f" : "Red");
 }
 
 function isItemUnique(sheet, activeRange, row) {
