@@ -328,7 +328,7 @@ function applyColorBaseOnItemSockets(e) {
       activeRange
     );
   }
-  // Rings/Trinckets Change only
+  // Rings/Trinkets Change only
   if (
     column === 5 &&
     [17, 18, 19, 20].includes(row) &&
