@@ -310,7 +310,7 @@ function applyColorBaseOnItemSockets(e) {
     resetGemCells(row, activeSheet);
     return;
   }
-  activeSheet.getRange("H5").setValue(`${row} ${column}`);
+  // activeSheet.getRange("H5").setValue(`${row} ${column}`);
 
   const additionalSocket = bsAndSocketBelt?.[`${row}${column}`];
   const dataSheet =
@@ -319,7 +319,7 @@ function applyColorBaseOnItemSockets(e) {
     `N${rowInDataSheet}:P${rowInDataSheet}`
   );
   const data = targetRange.getValues()[0].filter((gem) => gem !== "");
-  activeSheet.getRange("I5").setValue(additionalSocket);
+  // activeSheet.getRange("I5").setValue(additionalSocket);
 
   if ([12, 17, 22, 35].includes(column)) {
     isGemsCorrectPrismaticAndDragons(
@@ -367,9 +367,9 @@ function applyColorBaseOnItemSockets(e) {
 
   isMetaActive(activeSheet, activeSheet.getRange("L7").getValue(), activeSheet);
 
-  activeSheet
-    .getRange("J5")
-    .setValue(`${isBonusSocket} ${bonusForGems} ${data.length}`);
+  // activeSheet
+  //   .getRange("J5")
+  //   .setValue(`${isBonusSocket} ${bonusForGems} ${data.length}`);
 }
 function getTotalGems(data) {
   const subColors = {
@@ -413,25 +413,66 @@ function tearGemAdd(metaType, foundGems) {
   return foundGems;
 }
 
-function subColorMetaGemChekc(subColor, metaType) {
-  // Object.values(subColor).forEach((x) => {
-  //   Object.keys(x).forEach((color) => {
-  //     if (metaActivationReq[metaType].hasOwnProperty(color)) {
-  //       const amountToDeduct = metaActivationReq[metaType][color] - x[color];
-  //       Browser.msgBox(amountToDeduct);
-  //       metaActivationReq[metaType][color] -= amountToDeduct;
-  //       if (metaActivationReq[metaType][color] <= 0)
-  //         delete metaActivationReq[metaType][color];
-  //       if (amountToDeduct < 0) {
-  //         Object.keys(x).forEach((color) => {
-  //           x[color] = Math.abs(amountToDeduct);
-  //         });
-  //       }
-  //     }
-  //   });
-  // });
+function decrementColors(initialDict, compareDict) {
+  if (
+    !isColorsCorrect(
+      initialDict,
+      Object.values(compareDict)
+        .map((x) => Object.keys(x).map((y) => y))
+        .flat()
+    )
+  )
+    return false;
 
-  return Object.values(metaActivationReq[metaType]).reduce((a, b) => a + b, 0);
+  while (true) {
+    if (Object.keys(initialDict).length === 0) return true;
+    const topColor = Object.keys(initialDict).reduce((a, b) =>
+      initialDict[a] > initialDict[b] ? a : b
+    );
+
+    if (Object.keys(compareDict).length === 0) return false;
+    const maxKey = getKeyWithMostValue(compareDict, topColor);
+    if (!maxKey) return false;
+
+    if (initialDict[topColor] >= compareDict[maxKey][topColor]) {
+      initialDict[topColor] -= compareDict[maxKey][topColor];
+      delete compareDict[maxKey];
+      if (initialDict[topColor] === 0) delete initialDict[topColor];
+    } else if (initialDict[topColor] < compareDict[maxKey][topColor]) {
+      const deductedValue = initialDict[topColor];
+      delete initialDict[topColor];
+      Object.values(compareDict).forEach((c) => (c -= deductedValue));
+    }
+  }
+}
+
+function getKeyWithMostValue(dict, topColor) {
+  let maxKey = null;
+  let maxValue = -Infinity;
+
+  for (const key in dict) {
+    let totalValue = 0;
+    const colorValues = dict[key];
+    for (const color in colorValues) {
+      totalValue += colorValues[color];
+    }
+    if (totalValue > maxValue && dict[key].hasOwnProperty(topColor)) {
+      maxValue = totalValue;
+      maxKey = key;
+    }
+  }
+  return maxKey;
+}
+
+function isColorsCorrect(initialDict, compareDict) {
+  const initialSet = new Set(Object.keys(initialDict).map((x) => x));
+  const compareSet = new Set(compareDict);
+  for (let item of initialSet) {
+    if (!compareSet.has(item)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function isMetaActive(sheet, metaType, sheet) {
@@ -456,28 +497,31 @@ function isMetaActive(sheet, metaType, sheet) {
       delete foundGems[color];
     }
   }
-  sheet
-    .getRange("J2")
-    .setValue(`${JSON.stringify(metaActivationReq[metaType])}`);
 
-  sheet.getRange("J3").setValue(`${JSON.stringify(foundGems)}`);
+  // sheet
+  //   .getRange("J2")
+  //   .setValue(`${JSON.stringify(metaActivationReq[metaType])}`);
+
+  // sheet.getRange("J3").setValue(`${JSON.stringify(foundGems)}`);
 
   const missingToActive = Object.values(metaActivationReq[metaType]).reduce(
     (a, b) => a + b,
     0
   );
   const metaActive = missingToActive === 0;
-  sheet.getRange("J1").setValue(missingToActive);
-  sheet.getRange("I2").setValue(subColors);
-  sheet.getRange("AI14").setValue(metaActive ? "Yes" : "No");
 
-  if (metaActive) {
+  // sheet.getRange("J1").setValue(missingToActive);
+  // sheet.getRange("I2").setValue(subColors);
+  // sheet.getRange("L7").setFontColor("Red");
+  // sheet.getRange("AI14").setValue(metaActive ? "Yes" : "No");
+
+  if (metaActive || decrementColors(metaActivationReq[metaType], subColors)) {
     sheet.getRange("L7").setFontColor("#6aa84f");
+    sheet.getRange("AI14").setValue("Yes");
     return;
   }
-
-  // Browser.msgBox(subColorMetaGemChekc(subColors, metaType));
-  sheet.getRange("L7").setFontColor(metaActive ? "#6aa84f" : "Red");
+  sheet.getRange("AI14").setValue("No");
+  sheet.getRange("L7").setFontColor("Red");
 }
 
 function isItemUnique(sheet, activeRange, row) {
