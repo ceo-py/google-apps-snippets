@@ -286,6 +286,47 @@ var metaActivationReq = {
   "Beaming Earthsiege Diamond": { Red: 2, Yellow: 1 },
   "Revitalizing Skyflare Diamond": { Red: 2 },
 };
+var setBonus = {
+  range: { row: [7, 8, 9, 10, 11], col: 5 },
+  bonusActiveRange: ["P26", "P27", "P28", "P29", "P30", "P31", "P32", "P33"],
+  tiers: {
+    tier7: {
+      name: "Heroes' Redemption",
+      "2 Pieces": "P26",
+      "4 Pieces": "P27",
+    },
+    tier71: {
+      name: "Valorous Redemption",
+      "2 Pieces": "P26",
+      "4 Pieces": "P27",
+    },
+    tier8: {
+      name: "Valorous Aegis",
+      "2 Pieces": "P28",
+      "4 Pieces": "P29",
+    },
+    tier81: {
+      name: "Conqueror's Aegis",
+      "2 Pieces": "P28",
+      "4 Pieces": "P29",
+    },
+    tier9: {
+      name: "Turalyon's",
+      "2 Pieces": "P30",
+      "4 Pieces": "P31",
+    },
+    tier91: {
+      name: "Liadrin's",
+      "2 Pieces": "P30",
+      "4 Pieces": "P31",
+    },
+    tier10: {
+      name: "Lightsworn",
+      "2 Pieces": "P32",
+      "4 Pieces": "P33",
+    },
+  },
+};
 
 function applyColorBaseOnItemSockets(e) {
   const spreadSheet = e.source;
@@ -328,7 +369,7 @@ function applyColorBaseOnItemSockets(e) {
       activeRange
     );
   }
-  // Rings/Trinkets Change only
+  // Rings/Trinckets Change only
   if (
     column === 5 &&
     [17, 18, 19, 20].includes(row) &&
@@ -366,6 +407,10 @@ function applyColorBaseOnItemSockets(e) {
   }
 
   isMetaActive(activeSheet, activeSheet.getRange("L7").getValue(), activeSheet);
+
+  if (setBonus.range.row.includes(row) && setBonus.range.col === column) {
+    isSetBonus(activeSheet);
+  }
 
   // activeSheet
   //   .getRange("J5")
@@ -522,6 +567,32 @@ function isMetaActive(sheet, metaType, sheet) {
   }
   sheet.getRange("AI14").setValue("No");
   sheet.getRange("L7").setFontColor("Red");
+}
+
+function resetSetBonus(sheet) {
+  setBonus.bonusActiveRange.forEach((cell) => {
+    sheet.getRange(cell).setValue("");
+  });
+}
+
+function isSetBonus(sheet) {
+  const setBonusItems = sheet.getRange("E7:E11").getValues();
+  resetSetBonus(sheet);
+  Object.keys(setBonus.tiers).forEach((key) => {
+    const tier = setBonus.tiers[key];
+    const countItems = setBonusItems.filter((x) =>
+      containsExactWord(x, tier.name)
+    ).length;
+    const fourPeaceCell = sheet.getRange(tier["4 Pieces"]);
+    const twoPeaceCell = sheet.getRange(tier["2 Pieces"]);
+    // Browser.msgBox(`${tier.name} - ${countItems}`);
+    if ([4, 5].includes(countItems)) {
+      fourPeaceCell.setValue("Yes");
+      twoPeaceCell.setValue("Yes");
+    } else if ([2, 3].includes(countItems)) {
+      twoPeaceCell.setValue("Yes");
+    }
+  });
 }
 
 function isItemUnique(sheet, activeRange, row) {
