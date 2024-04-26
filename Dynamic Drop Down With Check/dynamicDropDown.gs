@@ -380,24 +380,18 @@ function applyColorBaseOnItemSockets(e) {
       activeRange
     );
   }
-  // Rings/Trinckets Change only
-  // if (
-  //   column === 5 &&
-  //   [17, 18, 19, 20].includes(row) &&
-  //   !isItemUnique(activeSheet, activeRange, row)
-  // )
-  //   return;
 
   const gameVersion = activeSheet.getRange("B4").getValue();
 
   if (
     column === 5 &&
     [17, 18, 19, 20].includes(row) &&
-    gameVersion !== "Wrath OG (v3.3.5)" &&
-    !isItemUnique(activeSheet, activeRange, row)
+    gameVersion === "Wrath Classic (v3.4.3)" &&
+    isItemUnique(activeSheet, activeRange, row)
   )
     return;
   else if (
+    column === 5 &&
     gameVersion === "Wrath OG (v3.3.5)" &&
     [17, 18, 19, 20].includes(row) &&
     !isRingTrinketUniqueOldVersion(
@@ -619,7 +613,6 @@ function isSetBonus(sheet) {
     ).length;
     const fourPeaceCell = sheet.getRange(tier["4 Pieces"]);
     const twoPeaceCell = sheet.getRange(tier["2 Pieces"]);
-    // Browser.msgBox(`${tier.name} - ${countItems}`);
     if ([4, 5].includes(countItems)) {
       fourPeaceCell.setValue("Yes");
       fourPeaceCell.setFontColor("#6aa84f");
@@ -644,17 +637,17 @@ function isRingTrinketUniqueOldVersion(
     skipingUniqueItems.includes(currentCellValue)
   )
     return true;
-  isItemUnique(sheet, activeRange, row);
-  return false;
+  return isItemUnique(sheet, activeRange, row);
 }
 
 function isItemUnique(sheet, activeRange, row) {
-  const range = sheet.getRange("E17:J20");
+  const range = sheet.getRange("E17:E20");
   const values = range
     .getValues()
-    .map((x) => JSON.stringify(x).split(","))
-    .map((x, i) => (containsExactWord(x[0], "Phase") ? i : x[0].split(" (")[0]))
-    .flat();
+    .flat()
+    .map((x, i) =>
+      x === "" ? i : containsExactWord(x, "Phase") ? i : x.split(" (")[0]
+    );
   if (values.length !== new Set(values).size) {
     resetGemCells(row, sheet);
     activeRange.setValue("");
