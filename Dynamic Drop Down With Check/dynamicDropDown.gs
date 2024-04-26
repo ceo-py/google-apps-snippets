@@ -2,6 +2,16 @@ var workingSheet = "CharacterSettings";
 var dataSheetName = "DataItems";
 var ActiveColumns = [5, 12, 17, 22, 35];
 var ActiveRows = Array.from({ length: 17 }, (_, index) => index + 7);
+var skipingUniqueItems = [
+  "(A) Solace of the Defeated (245)",
+  "(A) Solace of the Defeated (258)",
+  "(A) Ring of the Darkmender (245)",
+  "(A) Ring of the Darkmender (258)",
+  "(H) Solace of the Fallen (245)",
+  "(H) Solace of the Fallen (258)",
+  "(H) Circle of the Darkmender (245)",
+  "(H) Circle of the Darkmender (258)",
+];
 var enchantHeadOptionsDropDown = [
   "Arcanum of Burning Mysteries",
   "Arcanum of Blissful Mending",
@@ -349,6 +359,7 @@ function applyColorBaseOnItemSockets(e) {
     containsExactWord(currentCellValue, "Phase")
   ) {
     resetGemCells(row, activeSheet);
+    isSetBonus(activeSheet);
     return;
   }
   // activeSheet.getRange("H5").setValue(`${row} ${column}`);
@@ -370,12 +381,34 @@ function applyColorBaseOnItemSockets(e) {
     );
   }
   // Rings/Trinckets Change only
+  // if (
+  //   column === 5 &&
+  //   [17, 18, 19, 20].includes(row) &&
+  //   !isItemUnique(activeSheet, activeRange, row)
+  // )
+  //   return;
+
+  const gameVersion = activeSheet.getRange("B4").getValue();
+
   if (
     column === 5 &&
     [17, 18, 19, 20].includes(row) &&
+    gameVersion !== "Wrath OG (v3.3.5)" &&
     !isItemUnique(activeSheet, activeRange, row)
   )
     return;
+  else if (
+    gameVersion === "Wrath OG (v3.3.5)" &&
+    [17, 18, 19, 20].includes(row) &&
+    !isRingTrinketUniqueOldVersion(
+      activeSheet,
+      activeRange,
+      currentCellValue,
+      row
+    )
+  ) {
+    return;
+  }
 
   if (![12, 17, 22, 35].includes(column)) resetGemCells(row, activeSheet);
   // Extra Socket Change only
@@ -571,7 +604,8 @@ function isMetaActive(sheet, metaType, sheet) {
 
 function resetSetBonus(sheet) {
   setBonus.bonusActiveRange.forEach((cell) => {
-    sheet.getRange(cell).setValue("");
+    sheet.getRange(cell).setValue("No");
+    sheet.getRange(cell).setFontColor("Red");
   });
 }
 
@@ -588,11 +622,30 @@ function isSetBonus(sheet) {
     // Browser.msgBox(`${tier.name} - ${countItems}`);
     if ([4, 5].includes(countItems)) {
       fourPeaceCell.setValue("Yes");
+      fourPeaceCell.setFontColor("#6aa84f");
       twoPeaceCell.setValue("Yes");
+      twoPeaceCell.setFontColor("#6aa84f");
     } else if ([2, 3].includes(countItems)) {
       twoPeaceCell.setValue("Yes");
+      twoPeaceCell.setFontColor("#6aa84f");
     }
   });
+}
+
+function isRingTrinketUniqueOldVersion(
+  sheet,
+  activeRange,
+  currentCellValue,
+  row
+) {
+  if (
+    sheet.getRange("E18").getValue() !== sheet.getRange("E17").getValue() &&
+    sheet.getRange("E20").getValue() !== sheet.getRange("E19").getValue() &&
+    skipingUniqueItems.includes(currentCellValue)
+  )
+    return true;
+  isItemUnique(sheet, activeRange, row);
+  return false;
 }
 
 function isItemUnique(sheet, activeRange, row) {
