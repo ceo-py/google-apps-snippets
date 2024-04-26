@@ -29,6 +29,7 @@ function decrementColors(initialDict, compareDict) {
     }
 
 
+
 }
 
 function getKeyWithMostValue(dict, topColor) {
