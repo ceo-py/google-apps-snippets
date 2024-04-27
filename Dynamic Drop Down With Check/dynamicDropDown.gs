@@ -443,6 +443,24 @@ function applyColorBaseOnItemSockets(e) {
   //   .getRange("J5")
   //   .setValue(`${isBonusSocket} ${bonusForGems} ${data.length}`);
 }
+
+function combineColors(initialDict, compareDict) {
+  for (const color in compareDict) {
+    if (compareDict.hasOwnProperty(color)) {
+      const colorDict = compareDict[color];
+      for (const key in colorDict) {
+        if (colorDict.hasOwnProperty(key)) {
+          if (initialDict.hasOwnProperty(key)) {
+            initialDict[key] += colorDict[key];
+          } else {
+            initialDict[key] = colorDict[key];
+          }
+        }
+      }
+    }
+  }
+  return initialDict;
+}
 function getTotalGems(data) {
   const subColors = {
     Orange: { Red: 0, Yellow: 0 },
@@ -470,7 +488,7 @@ function getTotalGems(data) {
       }
     });
   }
-  return { foundGems, subColors };
+  return combineColors(foundGems, subColors);
 }
 
 function tearGemAdd(metaType, foundGems) {
@@ -483,39 +501,6 @@ function tearGemAdd(metaType, foundGems) {
     delete foundGems["Tear"];
   }
   return foundGems;
-}
-
-function decrementColors(initialDict, compareDict) {
-  if (
-    !isColorsCorrect(
-      initialDict,
-      Object.values(compareDict)
-        .map((x) => Object.keys(x).map((y) => y))
-        .flat()
-    )
-  )
-    return false;
-
-  while (true) {
-    if (Object.keys(initialDict).length === 0) return true;
-    const topColor = Object.keys(initialDict).reduce((a, b) =>
-      initialDict[a] > initialDict[b] ? a : b
-    );
-
-    if (Object.keys(compareDict).length === 0) return false;
-    const maxKey = getKeyWithMostValue(compareDict, topColor);
-    if (!maxKey) return false;
-
-    if (initialDict[topColor] >= compareDict[maxKey][topColor]) {
-      initialDict[topColor] -= compareDict[maxKey][topColor];
-      delete compareDict[maxKey];
-      if (initialDict[topColor] === 0) delete initialDict[topColor];
-    } else if (initialDict[topColor] < compareDict[maxKey][topColor]) {
-      const deductedValue = initialDict[topColor];
-      delete initialDict[topColor];
-      Object.values(compareDict).forEach((c) => (c -= deductedValue));
-    }
-  }
 }
 
 function getKeyWithMostValue(dict, topColor) {
@@ -558,7 +543,9 @@ function isMetaActive(sheet, metaType, sheet) {
     .filter((x) => x.length !== 0)
     .flat();
 
-  let { foundGems, subColors } = getTotalGems(values);
+  let foundGems = getTotalGems(values);
+  // sheet.getRange("I2").setValue(foundGems);
+
   foundGems = tearGemAdd(metaType, foundGems);
 
   for (const color in metaActivationReq[metaType]) {
@@ -570,24 +557,13 @@ function isMetaActive(sheet, metaType, sheet) {
     }
   }
 
-  // sheet
-  //   .getRange("J2")
-  //   .setValue(`${JSON.stringify(metaActivationReq[metaType])}`);
-
-  // sheet.getRange("J3").setValue(`${JSON.stringify(foundGems)}`);
-
   const missingToActive = Object.values(metaActivationReq[metaType]).reduce(
     (a, b) => a + b,
     0
   );
   const metaActive = missingToActive === 0;
 
-  // sheet.getRange("J1").setValue(missingToActive);
-  // sheet.getRange("I2").setValue(subColors);
-  // sheet.getRange("L7").setFontColor("Red");
-  // sheet.getRange("AI14").setValue(metaActive ? "Yes" : "No");
-
-  if (metaActive || decrementColors(metaActivationReq[metaType], subColors)) {
+  if (metaActive) {
     sheet.getRange("L7").setFontColor("#6aa84f");
     sheet.getRange("AI14").setValue("Yes");
     return;
@@ -613,6 +589,7 @@ function isSetBonus(sheet) {
     ).length;
     const fourPeaceCell = sheet.getRange(tier["4 Pieces"]);
     const twoPeaceCell = sheet.getRange(tier["2 Pieces"]);
+    // Browser.msgBox(`${tier.name} - ${countItems}`);
     if ([4, 5].includes(countItems)) {
       fourPeaceCell.setValue("Yes");
       fourPeaceCell.setFontColor("#6aa84f");
