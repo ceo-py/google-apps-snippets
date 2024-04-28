@@ -811,15 +811,12 @@ function applyColorBaseOnItemSockets(e) {
   const row = activeRange.getRow();
   const column = activeRange.getColumn();
 
+  metaNotActive(activeSheet);
+
   if (!ActiveColumns.includes(column) || !ActiveRows.includes(row)) return;
   const rowInDataSheet = activeSheet.getRange(`A${row}`).getValue();
   const currentCellValue = activeRange.getValue();
 
-  // Browser.msgBox(
-  //   `${row} ${column} - ${
-  //     raceAndGameVersion.row === row
-  //   }, ${raceAndGameVersion.col.includes(column)}`
-  // );
   correctHordAlianceItems(activeSheet, currentCellValue);
 
   if (gameVersions.includes(currentCellValue)) {
@@ -859,7 +856,7 @@ function applyColorBaseOnItemSockets(e) {
     column === 5 &&
     [17, 18, 19, 20].includes(row) &&
     gameVersion === "Wrath Classic (v3.4.3)" &&
-    isItemUnique(activeSheet, activeRange, row)
+    !isItemUnique(activeSheet, activeRange, row)
   )
     return;
   else if (
@@ -875,7 +872,6 @@ function applyColorBaseOnItemSockets(e) {
   ) {
     return;
   }
-
   if (![12, 17, 22, 35].includes(column)) resetGemCells(row, activeSheet);
   // Extra Socket Change only
   if (
@@ -905,7 +901,7 @@ function applyColorBaseOnItemSockets(e) {
     enchantsDropDown(activeSheet, row);
   }
 
-  isMetaActive(activeSheet, activeSheet.getRange("L7").getValue(), activeSheet);
+  isMetaActive(activeSheet, activeSheet.getRange("L7").getValue());
 
   if (setBonus.range.row.includes(row) && setBonus.range.col === column) {
     isSetBonus(activeSheet);
@@ -1065,7 +1061,11 @@ function isColorsCorrect(initialDict, compareDict) {
   return true;
 }
 
-function isMetaActive(sheet, metaType, sheet) {
+function metaNotActive(activeSheet) {
+  activeSheet.getRange("AI14").setValue("No");
+  activeSheet.getRange("L7").setFontColor("Red");
+}
+function isMetaActive(sheet, metaType) {
   if (!metaActivationReq.hasOwnProperty(metaType)) return;
 
   const range = sheet.getRange("L7:V23");
