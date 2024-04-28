@@ -602,15 +602,31 @@ function isSetBonus(sheet) {
   });
 }
 
+function rangeRingsOrTrinkets(row) {
+  const items = {
+    ring: "E17:E18",
+    trinket: "E19:E20",
+  };
+
+  const rings = [17, 18];
+  if (rings.includes(row)) return items.ring;
+  return items.trinket;
+}
+
 function isRingTrinketUniqueOldVersion(
   sheet,
   activeRange,
   currentCellValue,
   row
 ) {
+  const items = sheet
+    .getRange(rangeRingsOrTrinkets(row))
+    .getValues()
+    .flat()
+    .map((x) => x.toString());
+
   if (
-    sheet.getRange("E18").getValue() !== sheet.getRange("E17").getValue() &&
-    sheet.getRange("E20").getValue() !== sheet.getRange("E19").getValue() &&
+    items.length === new Set(items).size &&
     skipingUniqueItems.includes(currentCellValue)
   )
     return true;
@@ -618,7 +634,7 @@ function isRingTrinketUniqueOldVersion(
 }
 
 function isItemUnique(sheet, activeRange, row) {
-  const range = sheet.getRange("E17:E20");
+  const range = sheet.getRange(rangeRingsOrTrinkets(row));
   const values = range
     .getValues()
     .flat()
