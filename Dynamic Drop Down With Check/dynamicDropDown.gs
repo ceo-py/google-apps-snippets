@@ -811,11 +811,10 @@ function applyColorBaseOnItemSockets(e) {
   const row = activeRange.getRow();
   const column = activeRange.getColumn();
 
-  metaNotActive(activeSheet);
-
   if (!ActiveColumns.includes(column) || !ActiveRows.includes(row)) return;
   const rowInDataSheet = activeSheet.getRange(`A${row}`).getValue();
   const currentCellValue = activeRange.getValue();
+  const metaType = activeSheet.getRange("L7").getValue();
 
   correctHordAlianceItems(activeSheet, currentCellValue);
 
@@ -829,10 +828,10 @@ function applyColorBaseOnItemSockets(e) {
   ) {
     resetGemCells(row, activeSheet);
     isSetBonus(activeSheet);
+    isMetaActive(activeSheet, metaType);
     return;
   }
   // activeSheet.getRange("H5").setValue(`${row} ${column}`);
-
   const additionalSocket = bsAndSocketBelt?.[`${row}${column}`];
   const dataSheet =
     SpreadsheetApp.getActiveSpreadsheet().getSheetByName(dataSheetName);
@@ -857,9 +856,10 @@ function applyColorBaseOnItemSockets(e) {
     [17, 18, 19, 20].includes(row) &&
     gameVersion === "Wrath Classic (v3.4.3)" &&
     !isItemUnique(activeSheet, activeRange, row)
-  )
+  ) {
+    isMetaActive(activeSheet, metaType);
     return;
-  else if (
+  } else if (
     column === 5 &&
     gameVersion === "Wrath OG (v3.3.5)" &&
     [17, 18, 19, 20].includes(row) &&
@@ -870,6 +870,7 @@ function applyColorBaseOnItemSockets(e) {
       row
     )
   ) {
+    isMetaActive(activeSheet, metaType);
     return;
   }
   if (![12, 17, 22, 35].includes(column)) resetGemCells(row, activeSheet);
@@ -889,8 +890,11 @@ function applyColorBaseOnItemSockets(e) {
   ) {
     data.push("Meta");
   }
+  var bonusForGems = 0;
+  if (column === 5 && row >= 7 && row <= 23) {
+    bonusForGems = generateGemsDropDownMenu(activeSheet, row, data);
+  }
 
-  var bonusForGems = generateGemsDropDownMenu(activeSheet, row, data);
   const isBonusSocket = bonusForGems === data.length && bonusForGems > 0;
 
   if ([5, 12, 17, 22].includes(column)) {
@@ -901,7 +905,8 @@ function applyColorBaseOnItemSockets(e) {
     enchantsDropDown(activeSheet, row);
   }
 
-  isMetaActive(activeSheet, activeSheet.getRange("L7").getValue());
+  // isMetaActive(activeSheet, activeSheet.getRange("L7").getValue());
+  isMetaActive(activeSheet, metaType);
 
   if (setBonus.range.row.includes(row) && setBonus.range.col === column) {
     isSetBonus(activeSheet);
@@ -956,7 +961,7 @@ function itemsCorrectGameVersion(activeSheet, gameVersion) {
   }
 }
 
-function correctHordAlianceItems(activeSheet, currentCellValue) {
+function correctHordAlianceItems(activeSheet, currentCellValue, metaType) {
   const items = activeSheet
     .getRange("E7:E23")
     .getValues()
@@ -1067,7 +1072,6 @@ function metaNotActive(activeSheet) {
 }
 function isMetaActive(sheet, metaType) {
   if (!metaActivationReq.hasOwnProperty(metaType)) return;
-
   const range = sheet.getRange("L7:V23");
   const values = range
     .getValues()
@@ -1253,9 +1257,8 @@ function generateGemsDropDownMenu(activeSheet, row, data) {
   data.forEach((color, i) => {
     const cellToChange = activeSheet.getRange(`${colors[i]}${row}`);
     const cellValue = cellToChange.getValue();
-    // Browser.msgBox(color);
     bonusTotal += backgroundColorsBonus[backgroundColors[color]].includes(
-      cellValue || ""
+      cellValue.length === 0 ? "" : cellValue
     )
       ? 1
       : 0;
