@@ -10,7 +10,7 @@ var dropDownMenusBaseOnFightTimer = {
       position: "F47",
       optionsPos: "Q22",
       talentPos: "E39",
-      specsPos: ["AL5", "AL6"],
+      activationCells: ["AL5", "AL6", "E39"],
     },
     "Avenging Wrath": { position: "Y39", optionsPos: "Q21" },
   },
@@ -20,31 +20,22 @@ function combatTimeDropDownMenus(e) {
   const spreadSheet = e.source;
   const activeRange = e.source.getActiveRange();
   const sheetName = spreadSheet.getActiveSheet().getName();
-  if (sheetName !== sheetNameCharacter || sheetNameTalens !== sheetName) return;
+  if (![sheetNameTalens, sheetNameCharacter].includes(sheetName)) return;
 
   const cell = activeRange.getA1Notation();
   if (
-    cell !== dropDownMenusBaseOnFightTimer.activation ||
-    cell !==
-      dropDownMenusBaseOnFightTimer.dropDownMenus["Divine Illumination"]
-        .talentPos ||
+    cell !== dropDownMenusBaseOnFightTimer.activation &&
     !dropDownMenusBaseOnFightTimer.dropDownMenus[
       "Divine Illumination"
-    ].specsPos.includes(cell)
+    ].activationCells.includes(cell)
   )
     return;
-
   const activeSheet =
-    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetNameCharacter);
   const rangeDropDown =
     SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetNameDropOptions);
   const talentSheet =
     SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetNameTalens);
-
-  resetDropDownMenus(
-    activeSheet,
-    dropDownMenusBaseOnFightTimer.dropDownMenus["Divine Illumination"].position
-  );
 
   getDropDownMenusOptions(activeSheet, rangeDropDown, talentSheet);
 }
@@ -55,6 +46,7 @@ function getDropDownMenusOptions(activeSheet, rangeDropDown, talentRange) {
       const dropDownOptionsDynamic = rangeDropDown
         .getRange(menu.optionsPos)
         .getValue();
+
       if (i === 0 || i === 2) {
         generateDropDownMenu(
           activeSheet,
@@ -69,6 +61,12 @@ function getDropDownMenusOptions(activeSheet, rangeDropDown, talentRange) {
           activeSheet,
           dropDownOptionsDynamic,
           menu.position
+        );
+      } else {
+        resetDropDownMenus(
+          activeSheet,
+          dropDownMenusBaseOnFightTimer.dropDownMenus["Divine Illumination"]
+            .position
         );
       }
     }
@@ -88,8 +86,9 @@ function generateDropDownMenu(sheet, options, location) {
 
 function resetDropDownMenus(sheet, location) {
   const rule = SpreadsheetApp.newDataValidation()
-    .requireValueInList([0])
+    .requireValueInList(["0"])
     .build();
   const cell = sheet.getRange(location);
-  cell.setValue("").setDataValidation(rule);
+  cell.setDataValidation(rule);
+  cell.setValue("0");
 }

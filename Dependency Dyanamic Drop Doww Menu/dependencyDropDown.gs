@@ -539,12 +539,12 @@ var talents = {
   },
   divineIllumination: {
     talent: "E39",
-    dropDownLocation: "AD54",
-    dropDownOptions: 6,
+    dropDownLocation: "F47",
+    dropDownOptions: 8,
   },
   glyphOfHolyLight: {
     talent: "U31",
-    dropDownLocation: "AD52",
+    dropDownLocation: "AD44",
     dropDownOptions: 5,
   },
 };
@@ -571,20 +571,20 @@ function talentDynamicDropDownMenus(e) {
   } else {
     resetDropDownMenus(dropDownSheet, talents.holyShock.dropDownLocation);
   }
-  if (
-    activeSheet.getRange(talents.divineIllumination.talent).getValue() === 1
-  ) {
-    generateDropDownMenu(
-      dropDownSheet,
-      talents.divineIllumination.dropDownOptions,
-      talents.divineIllumination.dropDownLocation
-    );
-  } else {
-    resetDropDownMenus(
-      dropDownSheet,
-      talents.divineIllumination.dropDownLocation
-    );
-  }
+  // if (
+  //   activeSheet.getRange(talents.divineIllumination.talent).getValue() === 1
+  // ) {
+  //   generateDropDownMenu(
+  //     dropDownSheet,
+  //     talents.divineIllumination.dropDownOptions,
+  //     talents.divineIllumination.dropDownLocation
+  //   );
+  // } else {
+  //   resetDropDownMenus(
+  //     dropDownSheet,
+  //     talents.divineIllumination.dropDownLocation
+  //   );
+  // }
   if (
     activeSheet.getRange(talents.glyphOfHolyLight.talent).getValue() === true
   ) {
@@ -614,8 +614,9 @@ function generateDropDownMenu(sheet, options, location) {
 
 function resetDropDownMenus(sheet, location) {
   const rule = SpreadsheetApp.newDataValidation()
-    .requireValueInList([0])
+    .requireValueInList(['0'])
     .build();
   const cell = sheet.getRange(location);
-  cell.setValue("").setDataValidation(rule);
+  cell.setDataValidation(rule);
+  cell.setValue("0");
 }

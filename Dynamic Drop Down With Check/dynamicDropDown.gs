@@ -762,37 +762,76 @@ var setBonus = {
   bonusActiveRange: ["P26", "P27", "P28", "P29", "P30", "P31", "P32", "P33"],
   tiers: {
     tier7: {
-      name: "Heroes' Redemption",
-      "2 Pieces": "P26",
-      "4 Pieces": "P27",
-    },
-    tier71: {
-      name: "Valorous Redemption",
+      name: [
+        "Valorous Redemption Headpiece (213)",
+        "Valorous Redemption Spaulders (213)",
+        "Valorous Redemption Gloves (213)",
+        "Valorous Redemption Tunic (213)",
+        "Valorous Redemption Greaves (213)",
+        "Heroes' Redemption Headpiece (200)",
+        "Heroes' Redemption Spaulders (200)",
+        "Heroes' Redemption Gloves (200)",
+        "Heroes' Redemption Tunic (200)",
+        "Heroes' Redemption Greaves (200)",
+      ],
       "2 Pieces": "P26",
       "4 Pieces": "P27",
     },
     tier8: {
-      name: "Valorous Aegis",
-      "2 Pieces": "P28",
-      "4 Pieces": "P29",
-    },
-    tier81: {
-      name: "Conqueror's Aegis",
+      name: [
+        "Conqueror's Aegis Headpiece (232)",
+        "Conqueror's Aegis Headpiece (226)",
+        "Conqueror's Aegis Spaulders (232)",
+        "Conqueror's Aegis Spaulders (226)",
+        "Conqueror's Aegis Spaulders (226)",
+        "Conqueror's Aegis Greaves (232)",
+        "Conqueror's Aegis Greaves (226)",
+        "Conqueror's Aegis Tunic (232)",
+        "Conqueror's Aegis Tunic (226)",
+        "Conqueror's Aegis Gloves (232)",
+        "Conqueror's Aegis Gloves (226)",
+        "Valorous Aegis Headpiece (225)",
+        "Valorous Aegis Headpiece (219)",
+        "Valorous Aegis Spaulders (225)",
+        "Valorous Aegis Spaulders (219)",
+        "Valorous Aegis Gloves (225)",
+        "Valorous Aegis Gloves (219)",
+        "Valorous Aegis Tunic (219)",
+        "Valorous Aegis Tunic (225)",
+        "Valorous Aegis Greaves (225)",
+        "Valorous Aegis Greaves (219)",
+        "Valorous",
+      ],
       "2 Pieces": "P28",
       "4 Pieces": "P29",
     },
     tier9: {
-      name: "Turalyon's",
-      "2 Pieces": "P30",
-      "4 Pieces": "P31",
-    },
-    tier91: {
-      name: "Liadrin's",
+      name: [
+        "(H) Liadrin's Headpiece of Triumph (258)",
+        "(A) Turalyon's Headpiece of Triumph (258)",
+        "(H) Liadrin's Headpiece of Triumph (245)",
+        "(A) Turalyon's Headpiece of Triumph (245)",
+        "(H) Liadrin's Spaulders of Triumph (258)",
+        "(A) Turalyon's Spaulders of Triumph (258)",
+        "(H) Liadrin's Spaulders of Triumph (245)",
+        "(A) Turalyon's Spaulders of Triumph (245)",
+      ],
       "2 Pieces": "P30",
       "4 Pieces": "P31",
     },
     tier10: {
-      name: "Lightsworn",
+      name: [
+        "Sanctified Lightsworn Headpiece (277)",
+        "Sanctified Lightsworn Headpiece (264)",
+        "Sanctified Lightsworn Tunic (277)",
+        "Sanctified Lightsworn Tunic (264)",
+        "Sanctified Lightsworn Greaves (277)",
+        "Sanctified Lightsworn Greaves (264)",
+        "Sanctified Lightsworn Spaulders (277)",
+        "Sanctified Lightsworn Spaulders (264)",
+        "Sanctified Lightsworn Gloves (277)",
+        "Sanctified Lightsworn Gloves (264)",
+      ],
       "2 Pieces": "P32",
       "4 Pieces": "P33",
     },
@@ -890,10 +929,10 @@ function applyColorBaseOnItemSockets(e) {
   ) {
     data.push("Meta");
   }
-  var bonusForGems = 0;
-  if (column === 5 && row >= 7 && row <= 23) {
-    bonusForGems = generateGemsDropDownMenu(activeSheet, row, data);
-  }
+  // var bonusForGems = 0;
+  // if (column === 5 && row >= 7 && row <= 23) {
+  bonusForGems = generateGemsDropDownMenu(activeSheet, row, data);
+  // }
 
   const isBonusSocket = bonusForGems === data.length && bonusForGems > 0;
 
@@ -1121,18 +1160,20 @@ function isSetBonus(sheet) {
   resetSetBonus(sheet);
   Object.keys(setBonus.tiers).forEach((key) => {
     const tier = setBonus.tiers[key];
-    const countItems = setBonusItems.filter((x) =>
-      containsExactWord(x, tier.name)
-    ).length;
+    let setItemsCounter = 0;
+    setBonusItems.forEach((x) => {
+      if (tier.name.includes(x.toString())) {
+        setItemsCounter++;
+      }
+    });
     const fourPeaceCell = sheet.getRange(tier["4 Pieces"]);
     const twoPeaceCell = sheet.getRange(tier["2 Pieces"]);
-    // Browser.msgBox(`${tier.name} - ${countItems}`);
-    if ([4, 5].includes(countItems)) {
+    if ([4, 5].includes(setItemsCounter)) {
       fourPeaceCell.setValue("Yes");
       fourPeaceCell.setFontColor("#6aa84f");
       twoPeaceCell.setValue("Yes");
       twoPeaceCell.setFontColor("#6aa84f");
-    } else if ([2, 3].includes(countItems)) {
+    } else if ([2, 3].includes(setItemsCounter)) {
       twoPeaceCell.setValue("Yes");
       twoPeaceCell.setFontColor("#6aa84f");
     }
