@@ -295,7 +295,7 @@ function retTier2() {
   }
 }
 
-function onEdit(e) {
+function talentFunctionality(e) {
   var spreadSheet,
     sheetName,
     cell,
@@ -523,6 +523,7 @@ function onEdit(e) {
   }
   talentDynamicDropDownMenus(e);
   talentMenuDropDownDI();
+  triggerEnabled = true;
 }
 
 // talent and glyph dynamic drop down menu
