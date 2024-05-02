@@ -10,7 +10,6 @@ var dropDownMenusBaseOnFightTimer = {
       position: "F47",
       optionsPos: "Q22",
       talentPos: "E39",
-      activationCells: ["AL5", "AL6", "E39"],
     },
     "Avenging Wrath": { position: "Y39", optionsPos: "Q21" },
   },
@@ -24,12 +23,10 @@ function combatTimeDropDownMenus(e) {
 
   const cell = activeRange.getA1Notation();
   if (
-    cell !== dropDownMenusBaseOnFightTimer.activation &&
-    !dropDownMenusBaseOnFightTimer.dropDownMenus[
-      "Divine Illumination"
-    ].activationCells.includes(cell)
+    cell !== dropDownMenusBaseOnFightTimer.activation
   )
     return;
+
   const activeSheet =
     SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetNameCharacter);
   const rangeDropDown =

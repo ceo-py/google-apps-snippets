@@ -522,6 +522,7 @@ function onEdit(e) {
     }
   }
   talentDynamicDropDownMenus(e);
+  talentMenuDropDownDI();
 }
 
 // talent and glyph dynamic drop down menu
@@ -571,20 +572,6 @@ function talentDynamicDropDownMenus(e) {
   } else {
     resetDropDownMenus(dropDownSheet, talents.holyShock.dropDownLocation);
   }
-  // if (
-  //   activeSheet.getRange(talents.divineIllumination.talent).getValue() === 1
-  // ) {
-  //   generateDropDownMenu(
-  //     dropDownSheet,
-  //     talents.divineIllumination.dropDownOptions,
-  //     talents.divineIllumination.dropDownLocation
-  //   );
-  // } else {
-  //   resetDropDownMenus(
-  //     dropDownSheet,
-  //     talents.divineIllumination.dropDownLocation
-  //   );
-  // }
   if (
     activeSheet.getRange(talents.glyphOfHolyLight.talent).getValue() === true
   ) {
@@ -614,9 +601,72 @@ function generateDropDownMenu(sheet, options, location) {
 
 function resetDropDownMenus(sheet, location) {
   const rule = SpreadsheetApp.newDataValidation()
-    .requireValueInList(['0'])
+    .requireValueInList(["0"])
     .build();
   const cell = sheet.getRange(location);
   cell.setDataValidation(rule);
   cell.setValue("0");
+}
+
+// DI logic for drop down and activation on every cell
+
+var sheetNameDropOptions = "DataCalc";
+var sheetNameTalens = "Talents";
+var sheetNameCharacter = "CharacterSettings";
+var dropDownMenusBaseOnFightTimer = {
+  activation: "P39",
+
+  dropDownMenus: {
+    "Divine Plea": { position: "F46", optionsPos: "Q23" },
+    "Divine Illumination": {
+      position: "F47",
+      optionsPos: "Q22",
+      talentPos: "E39",
+    },
+    "Avenging Wrath": { position: "Y39", optionsPos: "Q21" },
+  },
+};
+
+function talentMenuDropDownDI() {
+  const activeSheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetNameCharacter);
+  const rangeDropDown =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetNameDropOptions);
+  const talentSheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetNameTalens);
+
+  getDropDownMenusOptions(activeSheet, rangeDropDown, talentSheet);
+}
+
+function getDropDownMenusOptions(activeSheet, rangeDropDown, talentRange) {
+  Object.values(dropDownMenusBaseOnFightTimer.dropDownMenus).forEach(
+    (menu, i) => {
+      const dropDownOptionsDynamic = rangeDropDown
+        .getRange(menu.optionsPos)
+        .getValue();
+
+      if (i === 0 || i === 2) {
+        generateDropDownMenu(
+          activeSheet,
+          dropDownOptionsDynamic,
+          menu.position
+        );
+      } else if (
+        i === 1 &&
+        talentRange.getRange(menu.talentPos).getValue() === 1
+      ) {
+        generateDropDownMenu(
+          activeSheet,
+          dropDownOptionsDynamic,
+          menu.position
+        );
+      } else {
+        resetDropDownMenus(
+          activeSheet,
+          dropDownMenusBaseOnFightTimer.dropDownMenus["Divine Illumination"]
+            .position
+        );
+      }
+    }
+  );
 }
