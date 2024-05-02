@@ -945,17 +945,12 @@ function applyColorBaseOnItemSockets(e) {
   }
 
   // isMetaActive(activeSheet, activeSheet.getRange("L7").getValue());
+  // Browser.msgBox("Before last call for isMetaActive");
   isMetaActive(activeSheet, metaType);
 
   if (setBonus.range.row.includes(row) && setBonus.range.col === column) {
     isSetBonus(activeSheet);
   }
-
-  // itemsCorrectGameVersion(activeSheet);
-
-  // activeSheet
-  //   .getRange("J5")
-  //   .setValue(`${isBonusSocket} ${bonusForGems} ${data.length}`);
 }
 function itemsCorrectGameVersionUiqueCheck(activeSheet) {
   const uniqueItems = {
@@ -1110,7 +1105,12 @@ function metaNotActive(activeSheet) {
   activeSheet.getRange("L7").setFontColor("Red");
 }
 function isMetaActive(sheet, metaType) {
-  if (!metaActivationReq.hasOwnProperty(metaType)) return;
+  // sheet.getRange("I2").setValue(`before check${metaType}`);
+  if (!metaActivationReq.hasOwnProperty(metaType)) {
+    sheet.getRange("AI14").setValue("No");
+    sheet.getRange("L7").setFontColor("Red");
+    return;
+  }
   const range = sheet.getRange("L7:V23");
   const values = range
     .getValues()
@@ -1156,7 +1156,6 @@ function resetSetBonus(sheet) {
 }
 
 function isSetBonus(sheet) {
-  const setBonusItems = sheet.getRange("E7:E11").getValues();
   resetSetBonus(sheet);
   Object.keys(setBonus.tiers).forEach((key) => {
     const tier = setBonus.tiers[key];
@@ -1295,28 +1294,31 @@ function setBonusSocket(sheet, row, bonus, data) {
 
 function generateGemsDropDownMenu(activeSheet, row, data) {
   let bonusTotal = 0;
-  data.forEach((color, i) => {
-    const cellToChange = activeSheet.getRange(`${colors[i]}${row}`);
-    const cellValue = cellToChange.getValue();
-    bonusTotal += backgroundColorsBonus[backgroundColors[color]].includes(
-      cellValue.length === 0 ? "" : cellValue
-    )
-      ? 1
-      : 0;
-    const isMetaColpr =
-      (color === "Meta" && row !== 7 && cellValue !== "Meta") ||
-      (row === 7 &&
-        color === "Meta" &&
-        cellValue !== "Meta" &&
-        cellValue !== "");
-    bonusTotal += isMetaColpr ? 1 : 0;
-    cellToChange.setBackground(backgroundColors[color]);
-    const rule = SpreadsheetApp.newDataValidation()
-      .requireValueInList(
-        color === "Meta" && row === 7 ? dropDownOptionsMeta : dropdownOptions
+  try {
+    data.forEach((color, i) => {
+      const cellToChange = activeSheet.getRange(`${colors[i]}${row}`);
+      const cellValue = cellToChange.getValue();
+      bonusTotal += backgroundColorsBonus[backgroundColors[color]].includes(
+        cellValue.length === 0 ? "" : cellValue
       )
-      .build();
-    cellToChange.setDataValidation(rule);
-  });
+        ? 1
+        : 0;
+      const isMetaColpr =
+        (color === "Meta" && row !== 7 && cellValue !== "Meta") ||
+        (row === 7 &&
+          color === "Meta" &&
+          cellValue !== "Meta" &&
+          cellValue !== "");
+      bonusTotal += isMetaColpr ? 1 : 0;
+      cellToChange.setBackground(backgroundColors[color]);
+      const rule = SpreadsheetApp.newDataValidation()
+        .requireValueInList(
+          color === "Meta" && row === 7 ? dropDownOptionsMeta : dropdownOptions
+        )
+        .build();
+      cellToChange.setDataValidation(rule);
+    });
+  } catch (e) {}
+
   return bonusTotal;
 }
