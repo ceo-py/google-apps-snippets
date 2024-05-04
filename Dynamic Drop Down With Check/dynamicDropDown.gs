@@ -1,6 +1,6 @@
 var workingSheet = "CharacterSettings";
 var dataSheetName = "DataItems";
-var ActiveColumns = [2, 9, 5, 12, 17, 22, 35];
+var ActiveColumns = [2, 9, 5, 12, 17, 22, 33];
 var ActiveRows = Array.from({ length: 17 }, (_, index) => index + 7);
 ActiveRows.push(4);
 
@@ -629,24 +629,24 @@ var backgroundColorsBonus = {
   ],
 };
 var bsAndSocketBelt = {
-  1135: "AI11",
-  1235: "AI12",
-  1335: "AI13",
-  115: "AI11",
-  125: "AI12",
-  135: "AI13",
+  1133: "AG11",
+  1233: "AG12",
+  1333: "AG13",
+  115: "AG11",
+  125: "AG12",
+  135: "AG13",
 
-  1112: "AI11",
-  1117: "AI11",
-  1122: "AI11",
+  1112: "AG11",
+  1117: "AG11",
+  1122: "AG11",
 
-  1212: "AI12",
-  1217: "AI12",
-  1222: "AI12",
+  1212: "AG12",
+  1217: "AG12",
+  1222: "AG12",
 
-  1312: "AI13",
-  1317: "AI13",
-  1322: "AI13",
+  1312: "AG13",
+  1317: "AG13",
+  1322: "AG13",
 };
 var correctGemColors = {
   Yellow: [
@@ -783,7 +783,6 @@ var setBonus = {
         "Conqueror's Aegis Headpiece (226)",
         "Conqueror's Aegis Spaulders (232)",
         "Conqueror's Aegis Spaulders (226)",
-        "Conqueror's Aegis Spaulders (226)",
         "Conqueror's Aegis Greaves (232)",
         "Conqueror's Aegis Greaves (226)",
         "Conqueror's Aegis Tunic (232)",
@@ -800,7 +799,6 @@ var setBonus = {
         "Valorous Aegis Tunic (225)",
         "Valorous Aegis Greaves (225)",
         "Valorous Aegis Greaves (219)",
-        "Valorous",
       ],
       "2 Pieces": "P28",
       "4 Pieces": "P29",
@@ -811,10 +809,32 @@ var setBonus = {
         "(A) Turalyon's Headpiece of Triumph (258)",
         "(H) Liadrin's Headpiece of Triumph (245)",
         "(A) Turalyon's Headpiece of Triumph (245)",
+        "(H) Liadrin's Headpiece of Conquest (232)",
+        "(A) Turalyon's Headpiece of Conquest (232)",
         "(H) Liadrin's Spaulders of Triumph (258)",
         "(A) Turalyon's Spaulders of Triumph (258)",
         "(H) Liadrin's Spaulders of Triumph (245)",
         "(A) Turalyon's Spaulders of Triumph (245)",
+        "(H) Liadrin's Spaulders of Conquest (232)",
+        "(A) Turalyon's Spaulders of Conquest (232)",
+        "(H) Liadrin's Tunic of Triumph (258)",
+        "(A) Turalyon's Tunic of Triumph (258)",
+        "(H) Liadrin's Tunic of Triumph (245)",
+        "(A) Turalyon's Tunic of Triumph (245)",
+        "(H) Liadrin's Tunic of Conquest (232)",
+        "(A) Turalyon's Tunic of Conquest (232)",
+        "(H) Liadrin's Greaves of Triumph (258)",
+        "(A) Turalyon's Greaves of Triumph (258)",
+        "(H) Liadrin's Greaves of Triumph (245)",
+        "(A) Turalyon's Greaves of Triumph (245)",
+        "(H) Liadrin's Greaves of Conquest (232)",
+        "(A) Turalyon's Greaves of Conquest (232)",
+        "(H) Liadrin's Gloves of Triumph (258)",
+        "(A) Turalyon's Gloves of Triumph (258)",
+        "(H) Liadrin's Gloves of Triumph (245)",
+        "(A) Turalyon's Gloves of Triumph (245)",
+        "(H) Liadrin's Gloves of Conquest (232)",
+        "(A) Turalyon's Gloves of Conquest (232)",
       ],
       "2 Pieces": "P30",
       "4 Pieces": "P31",
@@ -823,14 +843,19 @@ var setBonus = {
       name: [
         "Sanctified Lightsworn Headpiece (277)",
         "Sanctified Lightsworn Headpiece (264)",
+        "Lightsworn Headpiece (251)",
         "Sanctified Lightsworn Tunic (277)",
         "Sanctified Lightsworn Tunic (264)",
+        "Lightsworn Tunic (251)",
         "Sanctified Lightsworn Greaves (277)",
         "Sanctified Lightsworn Greaves (264)",
+        "Lightsworn Greaves (251)",
         "Sanctified Lightsworn Spaulders (277)",
         "Sanctified Lightsworn Spaulders (264)",
+        "Lightsworn Spaulders (251)",
         "Sanctified Lightsworn Gloves (277)",
         "Sanctified Lightsworn Gloves (264)",
+        "Lightsworn Gloves (251)",
       ],
       "2 Pieces": "P32",
       "4 Pieces": "P33",
@@ -862,7 +887,7 @@ function applyColorBaseOnItemSockets(e) {
   }
 
   if (
-    !(column === 35 && [11, 12, 13].includes(row)) &&
+    !(column === 33 && [11, 12, 13].includes(row)) &&
     containsExactWord(currentCellValue, "Phase")
   ) {
     resetGemCells(row, activeSheet);
@@ -880,7 +905,7 @@ function applyColorBaseOnItemSockets(e) {
   const data = targetRange.getValues()[0].filter((gem) => gem !== "");
   // activeSheet.getRange("I5").setValue(additionalSocket);
 
-  if ([12, 17, 22, 35].includes(column)) {
+  if ([12, 17, 22, 33].includes(column)) {
     isGemsCorrectPrismaticAndDragons(
       activeSheet,
       currentCellValue,
@@ -897,6 +922,7 @@ function applyColorBaseOnItemSockets(e) {
     !isItemUnique(activeSheet, activeRange, row)
   ) {
     isMetaActive(activeSheet, metaType);
+    isSetBonus(activeSheet);
     return;
   } else if (
     column === 5 &&
@@ -910,12 +936,13 @@ function applyColorBaseOnItemSockets(e) {
     )
   ) {
     isMetaActive(activeSheet, metaType);
+    isSetBonus(activeSheet);
     return;
   }
-  if (![12, 17, 22, 35].includes(column)) resetGemCells(row, activeSheet);
+  if (![12, 17, 22, 33].includes(column)) resetGemCells(row, activeSheet);
   // Extra Socket Change only
   if (
-    column === 35 &&
+    column === 33 &&
     additionalSocket &&
     !activeSheet.getRange(additionalSocket).getValue()
   ) {
@@ -947,10 +974,7 @@ function applyColorBaseOnItemSockets(e) {
   // isMetaActive(activeSheet, activeSheet.getRange("L7").getValue());
   // Browser.msgBox("Before last call for isMetaActive");
   isMetaActive(activeSheet, metaType);
-
-  if (setBonus.range.row.includes(row) && setBonus.range.col === column) {
-    isSetBonus(activeSheet);
-  }
+  isSetBonus(activeSheet);
 }
 function itemsCorrectGameVersionUiqueCheck(activeSheet) {
   const uniqueItems = {
@@ -1156,6 +1180,8 @@ function resetSetBonus(sheet) {
 }
 
 function isSetBonus(sheet) {
+  resetSetBonus(sheet);
+  const setBonusItems = sheet.getRange("E7:E11").getValues();
   resetSetBonus(sheet);
   Object.keys(setBonus.tiers).forEach((key) => {
     const tier = setBonus.tiers[key];
